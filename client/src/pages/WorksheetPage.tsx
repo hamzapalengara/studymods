@@ -3,9 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
-import { ArrowLeft, Download, Eye, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Lightbulb, Copy, Check } from 'lucide-react';
 import { useFilterData } from '../hooks/useFilterData';
 import { PDFViewer } from '../components/PDFViewer';
+import Modal from '../components/Modal';
+import { jsPDF } from 'jspdf';
 
 // Set worker path correctly
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -23,6 +25,15 @@ const WorksheetPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [answersNumPages, setAnswersNumPages] = useState(1);
+  const [answersPageNumber, setAnswersPageNumber] = useState(1);
+  const [tipsNumPages, setTipsNumPages] = useState(1);
+  const [tipsPageNumber, setTipsPageNumber] = useState(1);
+  const [answersError, setAnswersError] = useState<string | null>(null);
+  const [tipsError, setTipsError] = useState<string | null>(null);
+  const [answersContent, setAnswersContent] = useState<string>('');
+  const [tipsContent, setTipsContent] = useState<string>('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchPDF = async () => {
@@ -57,6 +68,112 @@ const WorksheetPage: React.FC = () => {
     setPdfError('Failed to load PDF file. Please try downloading instead.');
   };
 
+  const onAnswersLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setAnswersNumPages(numPages);
+  };
+
+  const onAnswersLoadError = (error: Error) => {
+    console.error('Answers Load Error:', error);
+    setAnswersError('Failed to load answers. Please try again later.');
+  };
+
+  const onTipsLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setTipsNumPages(numPages);
+  };
+
+  const onTipsLoadError = (error: Error) => {
+    console.error('Tips Load Error:', error);
+    setTipsError('Failed to load tips. Please try again later.');
+  };
+
+  const fetchTextContent = async (url: string): Promise<string> => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch content');
+    }
+    return response.text();
+  };
+
+  const handleAnswersClick = async () => {
+    try {
+      setAnswersError(null);
+      const content = await fetchTextContent(resource.answers_path);
+      setAnswersContent(content);
+      setShowAnswers(true);
+    } catch (error) {
+      console.error('Answers Load Error:', error);
+      setAnswersError('Failed to load answers. Please try again later.');
+    }
+  };
+
+  const handleTipsClick = async () => {
+    try {
+      setTipsError(null);
+      const content = await fetchTextContent(resource.tips_path);
+      setTipsContent(content);
+      setShowTips(true);
+    } catch (error) {
+      console.error('Tips Load Error:', error);
+      setTipsError('Failed to load tips. Please try again later.');
+    }
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const formatContent = (content: string) => {
+    return content.split('\n').map((line, index) => {
+      if (line.trim().startsWith('#')) {
+        return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{line.replace('#', '')}</h3>;
+      }
+      return <p key={index} className="mb-2">{line}</p>;
+    });
+  };
+
+  const generatePDF = (content: string, title: string) => {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(16);
+    doc.text(title, 20, 20);
+    
+    // Add content
+    doc.setFontSize(12);
+    const lines = content.split('\n');
+    let y = 30;
+    
+    lines.forEach(line => {
+      if (line.trim().startsWith('#')) {
+        // Section header
+        doc.setFont('helvetica', 'bold');
+        doc.text(line.replace('#', '').trim(), 20, y);
+        y += 10;
+      } else {
+        // Normal text
+        doc.setFont('helvetica', 'normal');
+        const splitText = doc.splitTextToSize(line, 170);
+        splitText.forEach((textLine: string) => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(textLine, 20, y);
+          y += 7;
+        });
+      }
+    });
+
+    return doc;
+  };
+
+  const handleDownloadPDF = (content: string, title: string, filename: string) => {
+    const doc = generatePDF(content, title);
+    doc.save(filename);
+  };
+
   if (!resource) {
     return <div>Resource not found</div>;
   }
@@ -67,27 +184,27 @@ const WorksheetPage: React.FC = () => {
       <div className="container mx-auto px-4 py-4">
         <Link to="/" className="text-blue-600 hover:text-blue-800 flex items-center">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Home
+          <span className="text-sm sm:text-base">Back to Home</span>
         </Link>
       </div>
 
       <main className="container mx-auto px-4 py-6">
-        <div className="flex gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar - Details and Actions */}
-          <div className="w-1/3">
-            <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="lg:col-span-1 order-1">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
               {/* Title */}
-              <h1 className="text-2xl font-bold mb-4">{resource.title}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold mb-4">{resource.title}</h1>
               
               {/* Resource Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                <span className="inline-flex px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                   {resource.resource_type}
                 </span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                <span className="inline-flex px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                   {resource.subject}
                 </span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                <span className="inline-flex px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
                   Grade {resource.grade}
                 </span>
               </div>
@@ -95,15 +212,15 @@ const WorksheetPage: React.FC = () => {
               {/* Description */}
               <div className="mb-6">
                 <h2 className="text-sm font-semibold text-gray-600 mb-2">Description</h2>
-                <p className="text-gray-600">{resource.description}</p>
+                <p className="text-gray-600 text-sm sm:text-base">{resource.description}</p>
               </div>
 
-              {/* Action Buttons - Stacked vertically */}
-              <div className="space-y-3">
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
                 <a
                   href={resource.resource_path}
                   download
-                  className="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base"
                 >
                   <Download className="mr-2 h-4 w-4" />
                   Download Material
@@ -111,7 +228,7 @@ const WorksheetPage: React.FC = () => {
 
                 {resource.answers_path && (
                   <button
-                    onClick={() => setShowAnswers(true)}
+                    onClick={handleAnswersClick}
                     className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                   >
                     <Eye className="mr-2 h-4 w-4" />
@@ -121,7 +238,7 @@ const WorksheetPage: React.FC = () => {
 
                 {resource.tips_path && (
                   <button
-                    onClick={() => setShowTips(true)}
+                    onClick={handleTipsClick}
                     className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                   >
                     <Lightbulb className="mr-2 h-4 w-4" />
@@ -133,28 +250,150 @@ const WorksheetPage: React.FC = () => {
           </div>
 
           {/* Right Side - Preview */}
-          <div className="w-2/3">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Preview</h2>
-              <Document
-                file={resource.resource_path}
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={(error) => {
-                  console.error('PDF Load Error:', error);
-                  setPdfError('Failed to load PDF preview');
-                }}
-                loading={<div>Loading PDF...</div>}
-              >
-                <Page 
-                  pageNumber={pageNumber}
-                  width={Math.min(window.innerWidth * 0.5, 600)}
-                  loading={<div>Loading page...</div>}
-                />
-              </Document>
+          <div className="lg:col-span-2 order-2">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4">Preview</h2>
+              <div className="bg-gray-50 rounded-lg min-h-[300px] sm:min-h-[600px] flex items-center justify-center">
+                <Document
+                  file={resource.resource_path}
+                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  onLoadError={onDocumentLoadError}
+                  loading={<div>Loading PDF...</div>}
+                  className="max-w-full"
+                >
+                  <Page 
+                    pageNumber={pageNumber} 
+                    width={Math.min(
+                      window.innerWidth > 1024 
+                        ? window.innerWidth * 0.5 
+                        : window.innerWidth * 0.85,
+                      800
+                    )}
+                    loading={<div>Loading page...</div>}
+                  />
+                </Document>
+              </div>
+              
+              {/* Page Navigation */}
+              <div className="flex items-center justify-center gap-2 sm:gap-4 mt-4">
+                <button
+                  onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
+                  disabled={pageNumber <= 1}
+                  className="px-2 sm:px-3 py-1 border rounded-md disabled:opacity-50 text-sm sm:text-base"
+                >
+                  Previous
+                </button>
+                <span className="text-sm sm:text-base">
+                  Page {pageNumber} of {numPages}
+                </span>
+                <button
+                  onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
+                  disabled={pageNumber >= numPages}
+                  className="px-2 sm:px-3 py-1 border rounded-md disabled:opacity-50 text-sm sm:text-base"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Answers Modal */}
+      <Modal
+        isOpen={showAnswers}
+        onClose={() => setShowAnswers(false)}
+        title="Answer Key"
+        icon={<Eye className="h-5 w-5" />}
+        footer={
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => handleCopy(answersContent)}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+              Copy
+            </button>
+            <button
+              onClick={() => handleDownloadPDF(answersContent, 'Answer Key', 'answers.pdf')}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download PDF
+            </button>
+          </div>
+        }
+      >
+        <div className="prose max-w-none">
+          {answersError ? (
+            <div className="text-red-600 text-center py-4">{answersError}</div>
+          ) : (
+            <div className="relative">
+              <div className="absolute top-2 right-2">
+                <button
+                  onClick={() => handleCopy(answersContent)}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Copy to clipboard"
+                >
+                  {copied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
+                </button>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-6 font-mono text-gray-800">
+                {formatContent(answersContent)}
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Tips Modal */}
+      <Modal
+        isOpen={showTips}
+        onClose={() => setShowTips(false)}
+        title="Solving Tips"
+        icon={<Lightbulb className="h-5 w-5" />}
+        footer={
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => handleCopy(tipsContent)}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+              Copy
+            </button>
+            <button
+              onClick={() => handleDownloadPDF(tipsContent, 'Solving Tips', 'tips.pdf')}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download PDF
+            </button>
+          </div>
+        }
+      >
+        <div className="prose max-w-none">
+          {tipsError ? (
+            <div className="text-red-600 text-center py-4">{tipsError}</div>
+          ) : (
+            <div className="relative">
+              <div className="absolute top-2 right-2">
+                <button
+                  onClick={() => handleCopy(tipsContent)}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Copy to clipboard"
+                >
+                  {copied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
+                </button>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-6">
+                <div className="space-y-4">
+                  {formatContent(tipsContent)}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
