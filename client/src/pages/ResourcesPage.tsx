@@ -139,8 +139,21 @@ const ResourcesPage: React.FC = () => {
             {filteredCards.map((card: Resource) => (
               <ResourceCard
                 key={card.id}
-                {...card}
+                resource={{
+                  id: card.id,
+                  title: card.title,
+                  description: card.description,
+                  grade: card.grade,
+                  subject: card.subject,
+                  topic: card.topic,
+                  resource_type: card.resource_type,
+                  image_url: card.image_url,
+                  resource_path: card.resource_path,
+                  answers_path: card.answers_path,
+                  tips_path: card.tips_path
+                }}
                 onClick={() => handleCardClick(card)}
+                className="related-card"
               />
             ))}
           </div>

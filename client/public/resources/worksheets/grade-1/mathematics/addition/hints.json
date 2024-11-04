@@ -1,0 +1,29 @@
+{
+  "worksheet_id": "math_g1_add_01",
+  "hints": [
+    {
+      "questionId": 1,
+      "hints": [
+        "Count using your fingers",
+        "Draw 5 circles, then add 3 more circles",
+        "Look at the picture of apples and count them all"
+      ]
+    },
+    {
+      "questionId": 2,
+      "hints": [
+        "Break 4 into 3 + 1",
+        "First add 7 + 3, then add 1 more",
+        "Use the number line to count forward"
+      ]
+    },
+    {
+      "questionId": 3,
+      "hints": [
+        "What number do you need to add to 6 to get 10?",
+        "Count up from 6 to 10",
+        "Think: 6 plus what equals 10?"
+      ]
+    }
+  ]
+}

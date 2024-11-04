@@ -1,0 +1,34 @@
+{
+  "id": "math_g1_add_01",
+  "metadata": {
+    "title": "Addition with Numbers 1-10",
+    "grade": "Grade 1",
+    "subject": "Mathematics",
+    "topic": "Addition",
+    "difficulty": "Basic",
+    "estimatedTime": "15 minutes",
+    "description": "Practice adding single-digit numbers up to 10"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "type": "number",
+      "question": "What is 5 + 3?",
+      "imageUrl": "/images/math/addition/apples_5_3.png",
+      "points": 1
+    },
+    {
+      "id": 2,
+      "type": "multiple-choice",
+      "question": "Select the correct sum: 7 + 4 = ?",
+      "options": ["9", "10", "11", "12"],
+      "points": 1
+    },
+    {
+      "id": 3,
+      "type": "fill-blanks",
+      "question": "Complete: 6 + ___ = 10",
+      "points": 2
+    }
+  ]
+}

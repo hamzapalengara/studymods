@@ -34,7 +34,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({ pdfPath }) => {
       <Document
         file={pdfPath}
         onLoadSuccess={onDocumentLoadSuccess}
-        onLoadError={onDocumentLoadError}
+        error={<div className="text-center py-8">Failed to load PDF</div>}
         loading={<div className="text-center py-8">Loading PDF...</div>}
       >
         <Page

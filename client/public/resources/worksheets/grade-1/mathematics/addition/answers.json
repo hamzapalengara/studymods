@@ -1,0 +1,20 @@
+{
+  "worksheet_id": "math_g1_add_01",
+  "answers": [
+    {
+      "questionId": 1,
+      "correctAnswer": 8,
+      "explanation": "When we add 5 and 3, we count 3 more steps after 5: 6, 7, 8"
+    },
+    {
+      "questionId": 2,
+      "correctAnswer": "11",
+      "explanation": "First add 7 + 3 = 10, then add 1 more to get 11"
+    },
+    {
+      "questionId": 3,
+      "correctAnswer": "4",
+      "explanation": "Since 6 + 4 = 10, the missing number is 4"
+    }
+  ]
+}

@@ -48,7 +48,7 @@ export const useFilterData = () => {
             setRawData(resources)
             setError(null)
           },
-          error: (error) => {
+          error: (error: Error) => {
             setError(`Error parsing CSV: ${error.message}`)
           }
         })
