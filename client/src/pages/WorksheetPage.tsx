@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
-import { ArrowLeft, Download, Eye, Lightbulb, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Lightbulb, Copy, Check, ArrowRight } from 'lucide-react';
 import { useFilterData } from '../hooks/useFilterData';
 import { PDFViewer } from '../components/PDFViewer';
 import Modal from '../components/Modal';
@@ -188,76 +188,135 @@ const WorksheetPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Back Button */}
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-2">
         <Link to="/" className="text-blue-600 hover:text-blue-800 flex items-center">
           <ArrowLeft className="mr-2 h-4 w-4" />
           <span className="text-sm sm:text-base">Back to Home</span>
         </Link>
       </div>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Side Container - Further increased width */}
-          <div className="lg:w-[420px] flex-shrink-0"> {/* Changed from 380px to 420px */}
-            {/* Details Card */}
-            <div className="bg-white p-6 rounded-lg shadow-md mb-4">
-              <h1 className="text-2xl font-bold text-gray-800 mb-4">{resource.title}</h1>
-              
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  {resource.resource_type}
-                </span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                  {resource.subject}
-                </span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                  {resource.grade}
-                </span>
-              </div>
+      <main className="container mx-auto px-4 py-4">
+        <div className="flex flex-col gap-6">
+          {/* Top Section with Details and Preview */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left Side Container */}
+            <div className="lg:w-[420px] flex-shrink-0">
+              {/* Details Card */}
+              <div className="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800 mb-4">{resource.title}</h1>
+                  
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                      {resource.resource_type}
+                    </span>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                      {resource.subject}
+                    </span>
+                    <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                      {resource.grade}
+                    </span>
+                  </div>
 
-              <div className="mb-6">
-                <h2 className="text-sm font-semibold text-gray-600 mb-2">Description</h2>
-                <p className="text-gray-600 text-sm">{resource.description}</p>
-              </div>
+                  <div className="mb-6">
+                    <h2 className="text-sm font-semibold text-gray-600 mb-2">Description</h2>
+                    <p className="text-gray-600 text-sm">{resource.description}</p>
+                  </div>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3">
-                <a
-                  href={resource.resource_path}
-                  download
-                  className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Material
-                </a>
-
-                {resource.answers_path && (
-                  <button
-                    onClick={handleAnswersClick}
-                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                {/* Action Buttons - pushed to bottom */}
+                <div className="flex flex-col gap-3 mt-auto">
+                  <a
+                    href={resource.resource_path}
+                    download
+                    className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base"
                   >
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Answers
-                  </button>
-                )}
+                    <Download className="mr-2 h-4 w-4" />
+                    Download Material
+                  </a>
 
-                {resource.tips_path && (
-                  <button
-                    onClick={handleTipsClick}
-                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                  >
-                    <Lightbulb className="mr-2 h-4 w-4" />
-                    Solving Tips
-                  </button>
-                )}
+                  {resource.answers_path && (
+                    <button
+                      onClick={handleAnswersClick}
+                      className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Answers
+                    </button>
+                  )}
+
+                  {resource.tips_path && (
+                    <button
+                      onClick={handleTipsClick}
+                      className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                    >
+                      <Lightbulb className="mr-2 h-4 w-4" />
+                      Solving Tips
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Related Section */}
-            <div className="bg-white rounded-lg shadow-md p-5">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Related Worksheets</h2>
-              <div className="grid grid-cols-2 gap-4 px-1"> {/* Added px-1 for slight edge padding */}
+            {/* Preview Section */}
+            <div className="flex-1">
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-lg sm:text-xl font-semibold mb-3">Preview</h2>
+                <div className="bg-gray-50 rounded-lg min-h-[250px] sm:min-h-[400px] flex items-center justify-center">
+                  <Document
+                    file={resource.resource_path}
+                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                    onLoadError={onDocumentLoadError}
+                    loading={<div>Loading PDF...</div>}
+                    className="max-w-full"
+                  >
+                    <Page 
+                      pageNumber={pageNumber} 
+                      width={Math.min(
+                        window.innerWidth > 1024 
+                          ? window.innerWidth * 0.4 
+                          : window.innerWidth * 0.85,
+                        700
+                      )}
+                      loading={<div>Loading page...</div>}
+                    />
+                  </Document>
+                </div>
+                
+                {/* Page Navigation */}
+                <div className="flex items-center justify-center gap-2 sm:gap-4 mt-3">
+                  <button
+                    onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
+                    disabled={pageNumber <= 1}
+                    className="px-2 sm:px-3 py-1 border rounded-md disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm sm:text-base">
+                    Page {pageNumber} of {numPages}
+                  </span>
+                  <button
+                    onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
+                    disabled={pageNumber >= numPages}
+                    className="px-2 sm:px-3 py-1 border rounded-md disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Related Resources Section */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Related Resources</h2>
+                <p className="text-gray-600 mt-1 text-sm">Similar worksheets you might find helpful</p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {rawData
                   .filter(item => 
                     item.id !== resource.id && 
@@ -267,70 +326,13 @@ const WorksheetPage: React.FC = () => {
                   )
                   .slice(0, 4)
                   .map(relatedResource => (
-                    <div key={relatedResource.id} className="transform transition-transform hover:scale-105">
-                      <ResourceCard
-                        resource={relatedResource}
-                        onClick={handleCardClick}
-                        className="related-card"
-                      />
-                    </div>
+                    <ResourceCard
+                      key={relatedResource.id}
+                      resource={relatedResource}
+                      onClick={handleCardClick}
+                      className="related-card"
+                    />
                   ))}
-              </div>
-              <div className="mt-5 text-center">
-                <button 
-                  onClick={() => navigate('/resources')}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  View More Worksheets →
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Preview Section - Takes remaining width */}
-          <div className="flex-1">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4">Preview</h2>
-              <div className="bg-gray-50 rounded-lg min-h-[300px] sm:min-h-[600px] flex items-center justify-center">
-                <Document
-                  file={resource.resource_path}
-                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                  onLoadError={onDocumentLoadError}
-                  loading={<div>Loading PDF...</div>}
-                  className="max-w-full"
-                >
-                  <Page 
-                    pageNumber={pageNumber} 
-                    width={Math.min(
-                      window.innerWidth > 1024 
-                        ? window.innerWidth * 0.5 
-                        : window.innerWidth * 0.85,
-                      800
-                    )}
-                    loading={<div>Loading page...</div>}
-                  />
-                </Document>
-              </div>
-              
-              {/* Page Navigation */}
-              <div className="flex items-center justify-center gap-2 sm:gap-4 mt-4">
-                <button
-                  onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
-                  disabled={pageNumber <= 1}
-                  className="px-2 sm:px-3 py-1 border rounded-md disabled:opacity-50 text-sm sm:text-base"
-                >
-                  Previous
-                </button>
-                <span className="text-sm sm:text-base">
-                  Page {pageNumber} of {numPages}
-                </span>
-                <button
-                  onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
-                  disabled={pageNumber >= numPages}
-                  className="px-2 sm:px-3 py-1 border rounded-md disabled:opacity-50 text-sm sm:text-base"
-                >
-                  Next
-                </button>
               </div>
             </div>
           </div>
