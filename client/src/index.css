@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,6 +12,10 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
+  }
+
+  html {
+    font-family: 'Nunito', sans-serif;
   }
 }
 
