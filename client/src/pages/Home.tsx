@@ -85,7 +85,7 @@ const Home: React.FC = () => {
   return (
     <div>
       {/* Hero Section - Made responsive */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-6 sm:py-8">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">
@@ -113,140 +113,127 @@ const Home: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content - Made responsive */}
-      <div className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filter Section - Made collapsible on mobile */}
-          <div className="w-full lg:w-64 lg:flex-shrink-0">
-            <div className="bg-white p-4 rounded-lg shadow">
-              <div className="flex justify-between items-center mb-4 lg:hidden">
-                <h2 className="text-lg font-semibold">Filters</h2>
-                <button 
-                  onClick={() => setShowFilters(!showFilters)} 
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  {showFilters ? 'Hide Filters' : 'Show Filters'}
-                </button>
+      {/* Main content area with filters and cards */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Filters Column */}
+          <div className="md:w-64 flex-shrink-0">
+            {/* Filter Header */}
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">Filters</h2>
+              <div className="w-16 h-1 bg-blue-600 rounded"></div>
+            </div>
+
+            {/* Filter Controls */}
+            <div className="space-y-4">
+              {/* Search Input First */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Search
+                </label>
+                <input
+                  type="text"
+                  value={filters.search}
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  placeholder="Search resources..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
 
-              {/* Filter content - Collapsible on mobile */}
-              <div className={`${showFilters ? 'block' : 'hidden lg:block'}`}>
-                {/* Existing filter inputs remain the same */}
-                <div className="space-y-4">
-                  {/* Search Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Search
-                    </label>
-                    <input
-                      type="text"
-                      value={filters.search}
-                      onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                      placeholder="Search resources..."
-                      className="w-full p-2 border rounded-md"
-                    />
-                  </div>
-
-                  {/* Resource Type Filter */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Resource Type
-                    </label>
-                    <select
-                      value={filters.resource_type}
-                      onChange={(e) => setFilters({ ...filters, resource_type: e.target.value })}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="">All Types</option>
-                      {filterData.resourceTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Grade Filter */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Grade Level
-                    </label>
-                    <select
-                      value={filters.grade}
-                      onChange={(e) => setFilters({ ...filters, grade: e.target.value })}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="">All Grades</option>
-                      {filterData.grades.map((grade) => (
-                        <option key={grade} value={grade}>
-                          {grade}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Subject Filter */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Subject
-                    </label>
-                    <select
-                      value={filters.subject}
-                      onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="">All Subjects</option>
-                      {availableSubjects.map((subject) => (
-                        <option key={subject} value={subject}>
-                          {subject}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Topic Filter */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Topic
-                    </label>
-                    <select
-                      value={filters.topic}
-                      onChange={(e) => setFilters({ ...filters, topic: e.target.value })}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="">All Topics</option>
-                      {availableTopics.map((topic) => (
-                        <option key={topic} value={topic}>
-                          {topic}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Search and Clear Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button
-                      onClick={handleSearch}
-                      className="w-full bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                      Search
-                    </Button>
-                    <Button
-                      onClick={handleClear}
-                      variant="outline"
-                      className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                </div>
+              {/* Other Filters */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Resource Type
+                </label>
+                <select
+                  value={filters.resource_type}
+                  onChange={(e) => setFilters({ ...filters, resource_type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Types</option>
+                  {filterData.resourceTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Grade
+                </label>
+                <select
+                  value={filters.grade}
+                  onChange={(e) => setFilters({ ...filters, grade: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Grades</option>
+                  {filterData.grades.map((grade) => (
+                    <option key={grade} value={grade}>
+                      {grade}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject
+                </label>
+                <select
+                  value={filters.subject}
+                  onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Subjects</option>
+                  {availableSubjects.map((subject) => (
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Topic
+                </label>
+                <select
+                  value={filters.topic}
+                  onChange={(e) => setFilters({ ...filters, topic: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Topics</option>
+                  {availableTopics.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Filter Action Buttons */}
+              <div className="flex flex-col gap-2 mt-6">
+                <button
+                  onClick={handleSearch}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Search
+                </button>
+                <button
+                  onClick={handleClear}
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Clear Filters
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Resource Cards - Responsive grid */}
+          {/* Cards Grid remains the same */}
           <div className="flex-1">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredCards.map((card) => (
                 <ResourceCard
                   key={card.id}

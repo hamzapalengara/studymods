@@ -80,21 +80,51 @@ export const useFilterData = () => {
   }
 
   const getFilteredCards = (filters: FilterOptions): Resource[] => {
-    return rawData.filter(item => {
-      // First check if the search term matches title or description
-      const searchMatch = !filters.search || (
-        (item.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
-         item.description?.toLowerCase().includes(filters.search.toLowerCase()))
-      );
+    return rawData.filter((card) => {
+      // If search term exists
+      if (filters.search && filters.search.trim() !== '') {
+        const searchTerm = filters.search.toLowerCase().trim();
+        
+        // Create an array of all searchable content from the card
+        const searchableFields = [
+          card.resource_type,
+          card.grade,
+          card.subject,
+          card.topic,
+          card.title,
+          card.description
+        ].map(field => (field || '').toLowerCase());
 
-      // Then check other filters
-      const typeMatch = !filters.resource_type || item.resource_type === filters.resource_type;
-      const gradeMatch = !filters.grade || item.grade === filters.grade;
-      const subjectMatch = !filters.subject || item.subject === filters.subject;
-      const topicMatch = !filters.topic || item.topic === filters.topic;
+        // Debug what we're searching through
+        console.log('Searching:', {
+          term: searchTerm,
+          fields: {
+            resource_type: card.resource_type,
+            grade: card.grade,
+            subject: card.subject,
+            topic: card.topic,
+            title: card.title,
+            description: card.description
+          }
+        });
 
-      // Return true only if all conditions match
-      return searchMatch && typeMatch && gradeMatch && subjectMatch && topicMatch;
+        // Check if any field contains the search term (partial match)
+        const matchFound = searchableFields.some(field => 
+          field.includes(searchTerm)
+        );
+
+        if (!matchFound) {
+          return false;
+        }
+      }
+
+      // Check other filters if they exist
+      if (filters.resource_type && card.resource_type !== filters.resource_type) return false;
+      if (filters.grade && card.grade !== filters.grade) return false;
+      if (filters.subject && card.subject !== filters.subject) return false;
+      if (filters.topic && card.topic !== filters.topic) return false;
+
+      return true;
     });
   }
 
