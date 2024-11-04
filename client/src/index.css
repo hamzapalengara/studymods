@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base typography styles */
+@layer base {
+  body {
+    @apply antialiased text-gray-800;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+}
+
+/* Add this to your CSS */
+.text-version {
+  background: transparent !important;
+}
+
+.text-version > div {
+  background: transparent !important;
+}
+
+.text-version .react-pdf__Page__textContent {
+  border: none !important;
+  background: transparent !important;
+  color: #374151 !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  padding: 1rem !important;
+  position: static !important;
+  transform: none !important;
+  user-select: text !important;
+}
+
+.text-version .react-pdf__Page__annotations {
+  display: none !important;
+}
+
+.text-version span {
+  color: #374151 !important;
+}
+
+.react-pdf__Document {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.react-pdf__Page {
+  max-width: 100%;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  margin: 1em;
+}
+
+.react-pdf__Page canvas {
+  max-width: 100%;
+  height: auto !important;
+}
+
+/* Add after your Tailwind imports */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+/* Optional: Add some custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
