@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -8,13 +8,16 @@ import { useFilterData } from '../hooks/useFilterData';
 import { PDFViewer } from '../components/PDFViewer';
 import Modal from '../components/Modal';
 import { jsPDF } from 'jspdf';
+import { Resource } from '../types/resource';
+import ResourceCard from '../components/ResourceCard';
 
 // Set worker path correctly
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 const WorksheetPage: React.FC = () => {
   const { id } = useParams();
-  const { getResourceById } = useFilterData();
+  const navigate = useNavigate();
+  const { getResourceById, rawData } = useFilterData();
   const resource = getResourceById(id || '');
   
   const [numPages, setNumPages] = useState<number>(1);
@@ -174,6 +177,10 @@ const WorksheetPage: React.FC = () => {
     doc.save(filename);
   };
 
+  const handleCardClick = (card: Resource) => {
+    navigate(`/worksheet/${card.id}`);
+  };
+
   if (!resource) {
     return <div>Resource not found</div>;
   }
@@ -188,31 +195,30 @@ const WorksheetPage: React.FC = () => {
         </Link>
       </div>
 
-      <main className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Sidebar - Details and Actions */}
-          <div className="lg:col-span-1 order-1">
-            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
-              {/* Title */}
-              <h1 className="text-xl sm:text-2xl font-bold mb-4">{resource.title}</h1>
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Side Container - Further increased width */}
+          <div className="lg:w-[420px] flex-shrink-0"> {/* Changed from 380px to 420px */}
+            {/* Details Card */}
+            <div className="bg-white p-6 rounded-lg shadow-md mb-4">
+              <h1 className="text-2xl font-bold text-gray-800 mb-4">{resource.title}</h1>
               
-              {/* Resource Tags */}
+              {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="inline-flex px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                   {resource.resource_type}
                 </span>
-                <span className="inline-flex px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                   {resource.subject}
                 </span>
-                <span className="inline-flex px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                  Grade {resource.grade}
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                  {resource.grade}
                 </span>
               </div>
 
-              {/* Description */}
               <div className="mb-6">
                 <h2 className="text-sm font-semibold text-gray-600 mb-2">Description</h2>
-                <p className="text-gray-600 text-sm sm:text-base">{resource.description}</p>
+                <p className="text-gray-600 text-sm">{resource.description}</p>
               </div>
 
               {/* Action Buttons */}
@@ -247,11 +253,43 @@ const WorksheetPage: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Related Section */}
+            <div className="bg-white rounded-lg shadow-md p-5">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Related Worksheets</h2>
+              <div className="grid grid-cols-2 gap-4 px-1"> {/* Added px-1 for slight edge padding */}
+                {rawData
+                  .filter(item => 
+                    item.id !== resource.id && 
+                    (item.subject === resource.subject || 
+                     item.topic === resource.topic ||
+                     item.grade === resource.grade)
+                  )
+                  .slice(0, 4)
+                  .map(relatedResource => (
+                    <div key={relatedResource.id} className="transform transition-transform hover:scale-105">
+                      <ResourceCard
+                        resource={relatedResource}
+                        onClick={handleCardClick}
+                        className="related-card"
+                      />
+                    </div>
+                  ))}
+              </div>
+              <div className="mt-5 text-center">
+                <button 
+                  onClick={() => navigate('/resources')}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  View More Worksheets →
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Right Side - Preview */}
-          <div className="lg:col-span-2 order-2">
-            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+          {/* Preview Section - Takes remaining width */}
+          <div className="flex-1">
+            <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-lg sm:text-xl font-semibold mb-4">Preview</h2>
               <div className="bg-gray-50 rounded-lg min-h-[300px] sm:min-h-[600px] flex items-center justify-center">
                 <Document
