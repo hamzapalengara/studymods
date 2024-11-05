@@ -11,6 +11,7 @@ interface Filters {
   grade: string
   subject: string
   topic: string
+  sub_topic: string
 }
 
 const Home: React.FC = () => {
@@ -21,7 +22,8 @@ const Home: React.FC = () => {
     resource_type: '',
     grade: '',
     subject: '',
-    topic: ''
+    topic: '',
+    sub_topic: ''
   })
   const [showFilters, setShowFilters] = useState(false)
 
@@ -35,6 +37,13 @@ const Home: React.FC = () => {
     grade: filters.grade,
     subject: filters.subject
   })
+
+  const availableSubTopics = getFilteredOptions('title', {
+    resource_type: filters.resource_type,
+    grade: filters.grade,
+    subject: filters.subject,
+    topic: filters.topic
+  });
 
   const handleCardClick = (card: Resource) => {
     switch (card.resource_type.toLowerCase()) {
@@ -58,9 +67,10 @@ const Home: React.FC = () => {
       resource_type: '',
       grade: '',
       subject: '',
-      topic: ''
-    })
-  }
+      topic: '',
+      sub_topic: ''
+    });
+  };
 
   const handleSearch = () => {
     const searchResults = getFilteredCards(filters)
@@ -223,6 +233,24 @@ const Home: React.FC = () => {
                     {availableTopics.map((topic) => (
                       <option key={topic} value={topic}>
                         {topic}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sub Topic
+                  </label>
+                  <select
+                    value={filters.sub_topic}
+                    onChange={(e) => setFilters({ ...filters, sub_topic: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">All Sub Topics</option>
+                    {availableSubTopics.map((subTopic) => (
+                      <option key={subTopic} value={subTopic}>
+                        {subTopic}
                       </option>
                     ))}
                   </select>

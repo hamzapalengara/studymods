@@ -21,26 +21,19 @@ const WorksheetPage: React.FC = () => {
   const navigate = useNavigate();
   const { getResourceById, rawData } = useFilterData();
   const resource = getResourceById(id || '');
-  
-  const [numPages, setNumPages] = useState<number>(1);
-  const [pageNumber, setPageNumber] = useState<number>(1);
-  const [showAnswers, setShowAnswers] = useState(false);
-  const [showTips, setShowTips] = useState(false);
+
+  const [viewMode, setViewMode] = useState<'interactive' | 'pdf'>('interactive');
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pdfError, setPdfError] = useState<string | null>(null);
-  const [answersNumPages, setAnswersNumPages] = useState(1);
-  const [answersPageNumber, setAnswersPageNumber] = useState(1);
-  const [tipsNumPages, setTipsNumPages] = useState(1);
-  const [tipsPageNumber, setTipsPageNumber] = useState(1);
+  const [showAnswers, setShowAnswers] = useState(false);
+  const [showTips, setShowTips] = useState(false);
+  const [answersContent, setAnswersContent] = useState('');
+  const [tipsContent, setTipsContent] = useState('');
   const [answersError, setAnswersError] = useState<string | null>(null);
   const [tipsError, setTipsError] = useState<string | null>(null);
-  const [answersContent, setAnswersContent] = useState<string>('');
-  const [tipsContent, setTipsContent] = useState<string>('');
-  const [copied, setCopied] = useState(false);
-  const [viewMode, setViewMode] = useState<'pdf' | 'interactive'>('interactive');
-  const [worksheetContent, setWorksheetContent] = useState<any>(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [numPages, setNumPages] = useState(1);
 
   useEffect(() => {
     const fetchPDF = async () => {
@@ -65,33 +58,6 @@ const WorksheetPage: React.FC = () => {
 
     fetchPDF();
   }, [resource?.resource_path]);
-
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-  };
-
-  const onDocumentLoadError = (error: Error) => {
-    console.error('PDF Load Error:', error);
-    setPdfError('Failed to load PDF file. Please try downloading instead.');
-  };
-
-  const onAnswersLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setAnswersNumPages(numPages);
-  };
-
-  const onAnswersLoadError = (error: Error) => {
-    console.error('Answers Load Error:', error);
-    setAnswersError('Failed to load answers. Please try again later.');
-  };
-
-  const onTipsLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setTipsNumPages(numPages);
-  };
-
-  const onTipsLoadError = (error: Error) => {
-    console.error('Tips Load Error:', error);
-    setTipsError('Failed to load tips. Please try again later.');
-  };
 
   const fetchTextContent = async (url: string): Promise<string> => {
     const response = await fetch(url);
@@ -127,111 +93,51 @@ const WorksheetPage: React.FC = () => {
     }
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const formatContent = (content: string) => {
-    return content.split('\n').map((line, index) => {
-      if (line.trim().startsWith('#')) {
-        return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{line.replace('#', '')}</h3>;
-      }
-      return <p key={index} className="mb-2">{line}</p>;
-    });
-  };
-
-  const handleDownloadPDF = (content: string, title: string, filename: string) => {
-    const doc = generatePDF(content);
-    doc.save(filename);
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
   };
 
   const handleCardClick = (card: Resource) => {
     navigate(`/worksheet/${card.id}`);
   };
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      if (!resource?.resource_path) return;
-      
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await fetch(resource.resource_path);
-        if (!response.ok) throw new Error('Failed to fetch worksheet content');
-        
-        const data = await response.json();
-        setWorksheetContent(data);
-        
-        // Generate PDF from JSON content
-        const doc = generateWorksheetPDF(data);
-        setPdfBlob(doc.output('blob'));
-        
-      } catch (err) {
-        console.error('Error loading content:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load content');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContent();
-  }, [resource?.resource_path]);
-
-  const renderAnswersContent = (content: string | null) => {
-    if (!content) return null;
+  const getRelatedResources = () => {
+    if (!resource || !rawData) return [];
     
-    try {
-      const answersData = JSON.parse(content);
-      return (
-        <div className="space-y-4">
-          {answersData.answers.map((answer: any) => (
-            <div key={answer.questionId} className="p-4 bg-gray-50 rounded-lg">
-              <div className="font-medium mb-2">Question {answer.questionId}</div>
-              <div className="text-blue-600 font-medium">Answer: {answer.correctAnswer}</div>
-              {answer.explanation && (
-                <p className="mt-2 text-gray-600 text-sm">{answer.explanation}</p>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    } catch (error) {
-      console.error('Error parsing answers JSON:', error);
-      return <div className="text-red-600">Error loading answers</div>;
-    }
+    return rawData
+      .filter(item => 
+        item.id !== resource.id && 
+        (item.subject === resource.subject || 
+         item.topic === resource.topic ||
+         item.grade === resource.grade)
+      )
+      .slice(0, 4);
   };
 
-  const renderTipsContent = (content: string | null) => {
-    if (!content) return null;
-
+  const handleDownload = async () => {
+    if (!resource?.resource_path) return;
+    
     try {
-      const tipsData = JSON.parse(content);
-      return (
-        <div className="space-y-4">
-          {tipsData.hints.map((hint: any) => (
-            <div key={hint.questionId} className="p-4 bg-gray-50 rounded-lg">
-              <div className="font-medium mb-2">Question {hint.questionId}</div>
-              <ul className="list-disc list-inside space-y-2">
-                {hint.hints.map((hintText: string, index: number) => (
-                  <li key={index} className="text-gray-600 ml-4">{hintText}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      );
+      const response = await fetch(resource.resource_path);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${resource.title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      console.error('Error parsing tips JSON:', error);
-      return <div className="text-red-600">Error loading tips</div>;
+      console.error('Download failed:', error);
     }
   };
 
   if (!resource) {
     return <div>Resource not found</div>;
   }
+
+  const relatedResources = getRelatedResources();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -243,195 +149,190 @@ const WorksheetPage: React.FC = () => {
         </Link>
       </div>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Side - Details */}
-          <div className="lg:w-[420px] flex-shrink-0">
-            {/* Details Card */}
-            <div className="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800 mb-4">{resource.title}</h1>
-                
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    {resource.resource_type}
-                  </span>
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                    {resource.subject}
-                  </span>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                    {resource.grade}
-                  </span>
-                </div>
+      <main className="container mx-auto px-4 py-4">
+        <div className="flex flex-col gap-6">
+          {/* Top Section with Details and Preview */}
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Left Side Container */}
+            <div className="lg:w-[420px] flex-shrink-0">
+              {/* Details Card */}
+              <div className="bg-white p-6 rounded-lg shadow-md max-h-[500px] overflow-y-auto">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800 mb-4">{resource.title}</h1>
+                  
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                      {resource.resource_type}
+                    </span>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                      {resource.subject}
+                    </span>
+                    <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                      {resource.grade}
+                    </span>
+                  </div>
 
-                <div className="mb-6">
-                  <h2 className="text-sm font-semibold text-gray-600 mb-2">Description</h2>
-                  <p className="text-gray-600 text-sm">{resource.description}</p>
+                  <div className="mb-6">
+                    <h2 className="text-sm font-semibold text-gray-600 mb-2">Description</h2>
+                    <p className="text-gray-600 text-sm">{resource.description}</p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-2 mt-auto">
+                    <button
+                      onClick={handleDownload}
+                      className="flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Material
+                    </button>
+                    <button
+                      onClick={handleAnswersClick}
+                      className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Answers
+                    </button>
+                    <button
+                      onClick={handleTipsClick}
+                      className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      <Lightbulb className="h-4 w-4 mr-2" />
+                      Solving Tips
+                    </button>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Action Buttons - pushed to bottom */}
-              <div className="flex flex-col gap-3 mt-auto">
-                <a
-                  href={resource.resource_path}
-                  download
-                  className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Material
-                </a>
+            {/* Right Side - Preview Section */}
+            <div className="flex-grow">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Preview</h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setViewMode('interactive')}
+                      className={`px-4 py-2 rounded-md ${
+                        viewMode === 'interactive' ? 'bg-blue-600 text-white' : 'bg-gray-100'
+                      }`}
+                    >
+                      Interactive
+                    </button>
+                    <button
+                      onClick={() => setViewMode('pdf')}
+                      className={`px-4 py-2 rounded-md ${
+                        viewMode === 'pdf' ? 'bg-blue-600 text-white' : 'bg-gray-100'
+                      }`}
+                    >
+                      PDF
+                    </button>
+                  </div>
+                </div>
 
-                {resource.answers_path && (
-                  <button
-                    onClick={handleAnswersClick}
-                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                  >
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Answers
-                  </button>
-                )}
-
-                {resource.tips_path && (
-                  <button
-                    onClick={handleTipsClick}
-                    className="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                  >
-                    <Lightbulb className="mr-2 h-4 w-4" />
-                    Solving Tips
-                  </button>
+                {viewMode === 'pdf' ? (
+                  <div className="flex justify-center">
+                    {loading ? (
+                      <div>Loading PDF...</div>
+                    ) : error ? (
+                      <div className="text-red-600">{error}</div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <div className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                          <Document
+                            file={pdfBlob}
+                            onLoadSuccess={onDocumentLoadSuccess}
+                          >
+                            <Page 
+                              pageNumber={pageNumber}
+                              width={Math.min(800, window.innerWidth - 48)}
+                            />
+                          </Document>
+                        </div>
+                        <div className="flex justify-center gap-4 mt-4 sticky bottom-0 bg-white py-2">
+                          <button
+                            onClick={() => setPageNumber(prev => Math.max(1, prev - 1))}
+                            disabled={pageNumber <= 1}
+                            className="px-3 py-1 border rounded-md disabled:opacity-50 hover:bg-gray-50"
+                          >
+                            Previous
+                          </button>
+                          <span className="flex items-center">
+                            Page {pageNumber} of {numPages}
+                          </span>
+                          <button
+                            onClick={() => setPageNumber(prev => Math.min(numPages, prev + 1))}
+                            disabled={pageNumber >= numPages}
+                            className="px-3 py-1 border rounded-md disabled:opacity-50 hover:bg-gray-50"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="max-h-[500px] overflow-y-auto">
+                    {/* Interactive content here */}
+                    <div>Interactive View Content</div>
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Right Side - Preview */}
-          <div className="flex-1">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold">Preview</h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setViewMode('interactive')}
-                    className={`px-3 py-1 rounded-md ${
-                      viewMode === 'interactive' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-100'
-                    }`}
-                  >
-                    Interactive
-                  </button>
-                  <button
-                    onClick={() => setViewMode('pdf')}
-                    className={`px-3 py-1 rounded-md ${
-                      viewMode === 'pdf' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-100'
-                    }`}
-                  >
-                    PDF
-                  </button>
-                </div>
+          {/* Related Resources Section */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Related Resources</h2>
+                <p className="text-gray-600 mt-1 text-sm">Similar worksheets you might find helpful</p>
               </div>
-
-              {loading ? (
-                <div className="text-center py-8">Loading...</div>
-              ) : error ? (
-                <div className="text-center py-8 text-red-600">{error}</div>
-              ) : viewMode === 'interactive' && worksheetContent ? (
-                <InteractiveWorksheet 
-                  resource={worksheetContent}
-                  showAnswers={showAnswers}
-                  showHints={showTips}
-                />
-              ) : viewMode === 'pdf' && pdfBlob ? (
-                <div style={{ height: '800px' }}>
-                  <Document
-                    file={pdfBlob}
-                    onLoadSuccess={onDocumentLoadSuccess}
-                    onLoadError={(error) => {
-                      console.error('Error loading PDF:', error);
-                      setError('Failed to load PDF preview');
-                    }}
-                  >
-                    <Page 
-                      pageNumber={pageNumber}
-                      width={Math.min(800, window.innerWidth - 48)}
-                    />
-                  </Document>
-                </div>
-              ) : (
-                <div className="text-center py-8">No content available</div>
-              )}
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {relatedResources.map(relatedResource => (
+                  <ResourceCard
+                    key={relatedResource.id}
+                    resource={relatedResource}
+                    onClick={handleCardClick}
+                    className="related-card"
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Related Resources Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Related Resources</h2>
-            <p className="text-gray-600 mt-1 text-sm">Similar worksheets you might find helpful</p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {rawData
-              .filter(item => 
-                item.id !== resource.id && 
-                (item.subject === resource.subject || 
-                 item.topic === resource.topic ||
-                 item.grade === resource.grade)
-              )
-              .slice(0, 4)
-              .map(relatedResource => (
-                <ResourceCard
-                  key={relatedResource.id}
-                  resource={relatedResource}
-                  onClick={handleCardClick}
-                  className="related-card"
-                />
-              ))}
-          </div>
+      {/* Modals */}
+      <Modal
+        isOpen={showAnswers}
+        onClose={() => setShowAnswers(false)}
+        title="Answer Key"
+      >
+        <div className="prose max-w-none">
+          {answersError ? (
+            <div className="text-red-600">{answersError}</div>
+          ) : (
+            <div className="whitespace-pre-wrap">{answersContent}</div>
+          )}
         </div>
-      </div>
+      </Modal>
 
-      {/* Answers Modal */}
-      {showAnswers && (
-        <Modal
-          isOpen={showAnswers}
-          onClose={() => setShowAnswers(false)}
-          title="Answer Key"
-          icon={<Eye className="h-5 w-5" />}
-        >
-          <div className="mt-4">
-            {answersError ? (
-              <div className="text-red-600">{answersError}</div>
-            ) : (
-              renderAnswersContent(answersContent)
-            )}
-          </div>
-        </Modal>
-      )}
-
-      {/* Tips Modal */}
-      {showTips && (
-        <Modal
-          isOpen={showTips}
-          onClose={() => setShowTips(false)}
-          title="Solving Tips"
-          icon={<Lightbulb className="h-5 w-5" />}
-        >
-          <div className="mt-4">
-            {tipsError ? (
-              <div className="text-red-600">{tipsError}</div>
-            ) : (
-              renderTipsContent(tipsContent)
-            )}
-          </div>
-        </Modal>
-      )}
+      <Modal
+        isOpen={showTips}
+        onClose={() => setShowTips(false)}
+        title="Solving Tips"
+      >
+        <div className="prose max-w-none">
+          {tipsError ? (
+            <div className="text-red-600">{tipsError}</div>
+          ) : (
+            <div className="whitespace-pre-wrap">{tipsContent}</div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

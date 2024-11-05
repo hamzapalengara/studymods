@@ -1,0 +1,6 @@
+Break it down: For larger numbers, break them down into smaller, easier-to-multiply parts. For example, 42 x 25 can be thought of as (40+2) x 25.
+Use the distributive property: This property allows you to break down multiplication into smaller, simpler steps. For example, 42 x 25 = (40 x 25) + (2 x 25).
+Multiply by 10s and 100s: Multiplying by 10 or 100 is easy: just add zeros to the end of the number. For example, 25 x 10 = 250.
+Use mental math: Practice mental math techniques to quickly multiply smaller numbers. For example, you can use the doubling and halving method to multiply 18 x 11: double 18 to get 36, halve 11 to get 5.5, then multiply 36 x 5.5.
+Check your work: Always double-check your answers to ensure accuracy. You can use a calculator or estimate to verify your results.
+Remember: Consistent practice is key to improving your multiplication skills.

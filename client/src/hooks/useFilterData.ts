@@ -8,6 +8,7 @@ interface FilterOptions {
   subject?: string;
   search?: string;
   topic?: string;
+  sub_topic?: string;
 }
 
 export const useFilterData = () => {
@@ -123,6 +124,7 @@ export const useFilterData = () => {
       if (filters.grade && card.grade !== filters.grade) return false;
       if (filters.subject && card.subject !== filters.subject) return false;
       if (filters.topic && card.topic !== filters.topic) return false;
+      if (filters.sub_topic && card.title !== filters.sub_topic) return false;
 
       return true;
     });

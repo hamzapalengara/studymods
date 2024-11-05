@@ -1,0 +1,51 @@
+import { Image, Math, Question, Diagram } from '../components/worksheet/WorksheetComponents';
+
+# Addition with Numbers 1-10
+
+Welcome to this interactive worksheet about basic addition! Let's practice adding numbers together.
+
+<Image 
+  src="/images/number-line.svg" 
+  alt="A number line from 0 to 10"
+  width={600}
+/>
+
+## Understanding Addition
+
+Addition means combining numbers together. When we add numbers, the result is called the sum.
+
+<Math formula="3 + 4 = 7" />
+
+Let's practice with some questions:
+
+<Question
+  id="1"
+  type="number"
+  points={2}
+  correctAnswer={8}
+>
+  What is 5 + 3?
+</Question>
+
+<Diagram src="/images/apples.svg" />
+
+<Question
+  id="2"
+  type="multiple-choice"
+  points={3}
+  options={[
+    "6 apples",
+    "7 apples",
+    "8 apples",
+    "9 apples"
+  ]}
+  correctAnswer="8 apples"
+>
+  Looking at the picture above, how many apples are there in total?
+</Question>
+
+## Practice Drawing Numbers
+
+Use the canvas below to practice writing numbers:
+
+<Diagram interactive={true} /> 
